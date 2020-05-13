@@ -1,0 +1,62 @@
+substitutions:
+  name: "lelit_victoria"
+  label: "Lelit Victoria"
+
+<<: !include includes/sonoff_basic.yaml
+
+dallas:
+  - pin: GPIO14   # GPIO2 on new layouts
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode: INPUT_PULLUP
+      inverted: True
+    id: button
+
+    on_press:
+      then:
+        - switch.toggle: relay
+
+  - platform: template
+    device_class: heat
+    name: "$label Ready"
+    id: ready
+
+    on_press:
+      then:
+        - light.turn_on: green_led
+    on_release:
+      then:
+        - light.turn_off: green_led
+
+sensor:
+  - platform: dallas
+    address: 0xAD0315A87740FF28
+    id: temperature
+    name: "$label Temperature"
+
+    on_value:
+      then:
+        - binary_sensor.template.publish:
+            id: ready
+            state: !lambda 'return x > 43;'
+
+switch:
+  - platform: gpio
+    name: "$label"
+    icon: "mdi:coffee"
+    pin: GPIO12
+    id: relay
+
+output:
+  - platform: esp8266_pwm
+    id: green_led_out
+    pin: GPIO13
+    inverted: True
+
+light:
+  - platform: monochromatic
+    id: green_led
+    output: green_led_out
