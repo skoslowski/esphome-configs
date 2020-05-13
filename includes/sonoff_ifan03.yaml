@@ -1,0 +1,93 @@
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: esp8285
+  includes:
+    - includes/sonoff_ifan03.h
+
+<<: !include common.yaml
+
+logger:
+  hardware_uart: UART1
+
+# Serial connected on GPIO1/3 9600bps 8N1
+# https://github.com/arendst/Tasmota/blob/development/tasmota/xdrv_22_sonoff_ifan.ino#L220
+uart:
+  id: uart_bus
+  tx_pin: GPIO1
+  rx_pin: GPIO3
+  baud_rate: 9600
+  stop_bits: 1
+
+
+binary_sensor:
+  - platform: custom
+    lambda: |-
+      auto remote_receiver = new IFan03::RemoteReceiver(id(uart_bus));
+      App.register_component(remote_receiver);
+      return remote_receiver->buttons;
+    binary_sensors:
+    - id: "button_fan_off"
+      on_press:
+        - fan.turn_off: ifan03
+    - id: "button_fan_low"
+      on_press:
+        - fan.turn_on:
+            id: ifan03
+            speed: LOW
+    - id: "button_fan_medium"
+      on_press:
+        - fan.turn_on:
+            id: ifan03
+            speed: MEDIUM
+    - id: "button_fan_high"
+      on_press:
+        - fan.turn_on:
+            id: ifan03
+            speed: HIGH
+    - id: "button_light"
+      on_press:
+        - light.toggle: lamp
+    - id: "button_buzzer"
+      on_press:
+        - switch.toggle: buzzer
+
+output:
+  - platform: custom  # uses GPIO12, GPIO14, GPIO15
+    type: float
+    lambda: |-
+      auto fan_output = new IFan03::FanOutput();
+      App.register_component(fan_output);
+      return {fan_output};
+    outputs:
+      id: fanoutput
+
+  - platform: gpio
+    pin: GPIO09
+    inverted: True
+    id: light_output
+
+  - platform: gpio
+    pin: GPIO10
+    inverted: True
+    id: buzzer_output
+
+switch:
+  - platform: output
+    name: "${friendly_name} Buzzer"
+    icon: "mdi:bell-ring"
+    output: buzzer_output
+    id: buzzer
+
+light:
+  - platform: binary
+    name: "${friendly_name} Light"
+    output: light_output
+    restore_mode: ALWAYS_ON
+    id: lamp
+
+fan:
+  - platform: speed
+    output: fanoutput
+    id: ifan03
+    name: ${friendly_name}
