@@ -49,8 +49,9 @@ binary_sensor:
       on_press:
         - light.toggle: lamp
     - id: "button_buzzer"
-      on_press:
-        - switch.toggle: buzzer
+      name: "${friendly_name} Buzzer Button"
+      # on_press:
+        # - switch.toggle: buzzer
 
 output:
   - platform: custom  # uses GPIO12, GPIO14, GPIO15
