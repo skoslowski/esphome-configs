@@ -1,0 +1,5 @@
+substitutions:
+  name: "outside_light"
+  light_name: "Balcony"
+
+<<: !include includes/light_switch.yaml
