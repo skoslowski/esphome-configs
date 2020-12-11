@@ -1,0 +1,18 @@
+substitutions:
+  name: "christmas_tree"
+  light_name: "Christmas Tree"
+
+<<: !include includes/light_switch.yaml
+
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO14
+      mode: INPUT_PULLUP
+    id: button_2
+    filters:
+      - delayed_on_off: 100ms
+    on_state:
+      then:
+        - light.toggle: light_1
