@@ -1,0 +1,5 @@
+substitutions:
+  name: "ceiling-light-north"
+  light_name: "Ceiling North"
+
+<<: !include includes/light-switch.yaml

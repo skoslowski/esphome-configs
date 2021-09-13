@@ -2,8 +2,9 @@ esphome:
   name: ${name}
   platform: ESP8266
   board: esp8285
+  build_path: build/${name}
   includes:
-    - includes/sonoff_ifan03.h
+    - includes/sonoff-ifan03.h
 
 <<: !include common.yaml
 
@@ -34,17 +35,17 @@ binary_sensor:
       on_press:
         - fan.turn_on:
             id: ifan03
-            speed: LOW
+            speed: 1
     - id: "button_fan_medium"
       on_press:
         - fan.turn_on:
             id: ifan03
-            speed: MEDIUM
+            speed: 2
     - id: "button_fan_high"
       on_press:
         - fan.turn_on:
             id: ifan03
-            speed: HIGH
+            speed: 3
     - id: "button_light"
       on_press:
         - light.toggle: lamp
@@ -90,5 +91,6 @@ light:
 fan:
   - platform: speed
     output: fanoutput
+    speed_count: 3
     id: ifan03
     name: ${friendly_name}

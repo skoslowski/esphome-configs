@@ -1,4 +1,4 @@
-<<: !include sonoff_basic.yaml
+<<: !include sonoff-basic.yaml
 
 binary_sensor:
   - platform: gpio

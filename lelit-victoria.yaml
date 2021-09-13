@@ -1,8 +1,8 @@
 substitutions:
-  name: "lelit_victoria"
+  name: "lelit-victoria"
   label: "Lelit Victoria"
 
-<<: !include includes/sonoff_basic.yaml
+<<: !include includes/sonoff-basic.yaml
 
 dallas:
   - pin: GPIO14   # GPIO2 on new layouts

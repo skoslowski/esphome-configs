@@ -4,6 +4,7 @@ wifi:
   ap:
     ssid: ${name}
     password: !secret wifi_ap_password
+  # use_address: 192.168.11.220
 
 captive_portal:
 
