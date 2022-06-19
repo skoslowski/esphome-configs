@@ -1,0 +1,5 @@
+substitutions:
+  name: "bedroom-fan"
+  friendly_name: "Bedroom Fan"
+
+<<: !include includes/sonoff-ifan03.yaml
