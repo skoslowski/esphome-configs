@@ -2,4 +2,11 @@ substitutions:
   name: "bedroom-fan"
   friendly_name: "Bedroom Fan"
 
-<<: !include includes/sonoff-ifan03.yaml
+packages:
+  ifan03: !include includes/sonoff-ifan03.yaml
+
+api:
+  password: ''
+  encryption:
+    key: !secret api_encryption_key
+  reboot_timeout: 0s  # 15min
