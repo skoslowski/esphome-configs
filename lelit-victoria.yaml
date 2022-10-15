@@ -31,6 +31,23 @@ binary_sensor:
       then:
         - light.turn_off: green_led
 
+  - platform: gpio
+    pin:
+      number: GPIO3
+      mode: INPUT_PULLUP
+      inverted: True
+    id: power_button
+
+    filters:
+      - delayed_on_off: 10ms
+
+    on_press:
+      then:
+        - switch.turn_on: relay
+    on_release:
+      then:
+        - switch.turn_off: relay
+
 sensor:
   - platform: dallas
     address: 0xAD0315A87740FF28
