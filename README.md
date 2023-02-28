@@ -20,7 +20,14 @@ pipenv run esphome CONFIG.yaml compile
 ```
 Details see [Getting Started with ESPHome](https://esphome.io/guides/getting_started_command_line.html)
 
+## OTA tips
 
+OpenWRT WiFi settings
+
+* set "Operating frequency", "Mode" to "Legacy"
+* enable "Allow legacy 802.11b rates"
+* deactivate "Disassociate On Low Acknowledgement"
+* (disable wifi on repeaters)
 
 ## From legacy firmware
 
