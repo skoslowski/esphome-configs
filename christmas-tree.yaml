@@ -1,8 +1,8 @@
 substitutions:
-  name: "christmas_tree"
+  name: "christmas-tree"
   light_name: "Christmas Tree"
 
-<<: !include includes/light_switch.yaml
+<<: !include includes/light-switch.yaml
 
 
 binary_sensor:
