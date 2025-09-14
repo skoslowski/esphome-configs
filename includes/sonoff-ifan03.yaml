@@ -1,96 +1,156 @@
 esphome:
   name: ${name}
-  platform: ESP8266
-  board: esp8285
-  build_path: build/${name}
-  includes:
-    - includes/sonoff-ifan03.h
+  friendly_name: "${friendly_name}"
 
 <<: !include common.yaml
+
+esp8266:
+  board: esp8285
 
 logger:
   hardware_uart: UART1
 
-# Serial connected on GPIO1/3 9600bps 8N1
-# https://github.com/arendst/Tasmota/blob/development/tasmota/xdrv_22_sonoff_ifan.ino#L220
-uart:
-  id: uart_bus
-  tx_pin: GPIO1
-  rx_pin: GPIO3
-  baud_rate: 9600
-  stop_bits: 1
-
-
-binary_sensor:
-  - platform: custom
-    lambda: |-
-      auto remote_receiver = new IFan03::RemoteReceiver(id(uart_bus));
-      App.register_component(remote_receiver);
-      return remote_receiver->buttons;
-    binary_sensors:
-    - id: "button_fan_off"
-      on_press:
-        - fan.turn_off: ifan03
-    - id: "button_fan_low"
-      on_press:
-        - fan.turn_on:
-            id: ifan03
-            speed: 1
-    - id: "button_fan_medium"
-      on_press:
-        - fan.turn_on:
-            id: ifan03
-            speed: 2
-    - id: "button_fan_high"
-      on_press:
-        - fan.turn_on:
-            id: ifan03
-            speed: 3
-    - id: "button_light"
-      on_press:
-        - light.toggle: lamp
-    - id: "button_buzzer"
-      name: "${friendly_name} Buzzer Button"
-      # on_press:
-        # - switch.toggle: buzzer
-
 output:
-  - platform: custom  # uses GPIO12, GPIO14, GPIO15
-    type: float
-    lambda: |-
-      auto fan_output = new IFan03::FanOutput();
-      App.register_component(fan_output);
-      return {fan_output};
-    outputs:
-      id: fanoutput
-
   - platform: gpio
     pin: GPIO09
-    inverted: True
+    inverted: true
     id: light_output
 
-  - platform: gpio
-    pin: GPIO10
-    inverted: True
-    id: buzzer_output
-
 switch:
-  - platform: output
-    name: "${friendly_name} Buzzer"
-    icon: "mdi:bell-ring"
-    output: buzzer_output
+  - platform: gpio
+    internal: True
+    name: "Buzzer"
+    pin:
+      number: GPIO10
+      inverted: true
     id: buzzer
+
+  - platform: gpio
+    internal: true
+    pin: GPIO14
+    id: fan_relay1
+    restore_mode: ALWAYS_OFF
+
+  - platform: gpio
+    internal: true
+    pin: GPIO12
+    id: fan_relay2
+    restore_mode: ALWAYS_OFF
+
+  - platform: gpio
+    internal: true
+    pin: GPIO15
+    id: fan_relay3
+    restore_mode: ALWAYS_OFF
 
 light:
   - platform: binary
-    name: "${friendly_name} Light"
+    name: "$friendly_name"
     output: light_output
     restore_mode: ALWAYS_ON
-    id: lamp
+    id: ifan03_light
 
 fan:
-  - platform: speed
-    output: fanoutput
+  - platform: template
+    id: ifan03_fan
+    name: "$friendly_name"
     speed_count: 3
-    id: ifan03
-    name: ${friendly_name}
+    restore_mode: NO_RESTORE # important
+    on_turn_on:
+      - switch.turn_on: fan_relay1
+      - switch.turn_off: fan_relay2
+      - switch.turn_off: fan_relay3
+    on_turn_off:
+      - switch.turn_off: fan_relay1
+      - switch.turn_off: fan_relay2
+      - switch.turn_off: fan_relay3
+    on_speed_set:
+      lambda: |-
+        if (id(ifan03_fan).speed == 1) {
+          id(fan_relay1).turn_on();
+          id(fan_relay2).turn_off();
+          id(fan_relay3).turn_off();
+        } else if (id(ifan03_fan).speed == 2) {
+          id(fan_relay1).turn_on();
+          id(fan_relay2).turn_on();
+          id(fan_relay3).turn_off();
+        } else if (id(ifan03_fan).speed == 3) {
+          id(fan_relay1).turn_off();
+          id(fan_relay2).turn_off();
+          id(fan_relay3).turn_on();
+        }
+
+remote_receiver:
+  pin: GPIO03
+  dump: raw
+
+binary_sensor:
+  # remote button row 3 button 1
+  - platform: remote_receiver
+    name: "Fan Off"
+    id: remote_0
+    raw:
+      code: [-207, 104, -103, 104, -104, 103, -104, 207, -104, 103, -104, 104, -103, 104, -104, 103, -104, 105, -102, 104, -725, 104, -311, 103, -518, 104, -933, 103, -104, 104, -725, 104, -932, 104, -207, 207, -519]
+    on_release:
+      then:
+        - fan.turn_off: ifan03_fan
+    internal: true
+  # remote button row 3 button 2
+  - platform: remote_receiver
+    name: "Fan Low"
+    id: remote_1
+    raw:
+      code: [-207, 104, -104, 103, -104, 104, -103, 207, -104, 104, -103, 104, -104, 103, -104, 104, -103, 104, -104, 103, -726, 103, -312, 103, -518, 104, -933, 103, -104, 104, -725, 104, -103, 104, -726, 103, -104, 311, -518]
+    on_release:
+      then:
+        - fan.turn_on:
+            id: ifan03_fan
+            speed: 1
+    internal: true
+  # remote button row 2 button 2
+  - platform: remote_receiver
+    name: "Fan Medium"
+    id: remote_2
+    raw:
+      code: [-208, 103, -104, 104, -103, 104, -103, 208, -103, 104, -104, 103, -104, 104, -103, 104, -104, 103, -104, 103, -726, 104, -310, 104, -518, 104, -933, 103, -104, 104, -725, 104, -207, 104, -622, 103, -416, 102, -415]
+    on_release:
+      then:
+        - fan.turn_on:
+            id: ifan03_fan
+            speed: 2
+    internal: true
+  # remote button row 2 button 1
+  - platform: remote_receiver
+    name: "Fan High"
+    id: remote_3
+    raw:
+      code: [-207, 104, -104, 103, -104, 104, -103, 208, -103, 104, -104, 103, -104, 104, -103, 104, -104, 103, -104, 103, -726, 104, -311, 104, -518, 103, -934, 103, -103, 104, -726, 103, -104, 207, -622, 104, -103, 104, -207, 104, -415]
+    on_release:
+      then:
+        - fan.turn_on:
+            id: ifan03_fan
+            speed: 3
+    internal: true
+  # remote button row 1 button 1
+  - platform: remote_receiver
+    name: "Fan Light"
+    id: remote_light
+    raw:
+      code: [-207, 104, -103, 104, -104, 103, -104, 207, -104, 103, -104, 104, -103, 104, -103, 104, -104, 103, -104, 104, -725, 104, -311, 103, -518, 104, -933, 103, -104, 103, -726, 103, -311, 104, -518, 104, -207, 104, -103, 104, -414]
+    on_release:
+      then:
+        - light.toggle: ifan03_light
+    internal: true
+  # remote button row 1 button 2 - used to call a home assistant service
+  # - platform: remote_receiver
+  #   name: "Spare Button"
+  #   id: remote_spare_button
+  #   raw:
+  #     code: [-207, 104, -103, 104, -104, 103, -104, 207, -104, 103, -104, 103, -104, 104, -103, 104, -103, 104, -104, 107, -721, 105, -206, 207, -518, 105, -931, 104, -104, 103, -725, 104, -104, 103, -725, 104, -104, 103, -207, 104, -414]
+  #   on_release:
+  #     then:
+  #       - homeassistant.service:
+  #           service: light.toggle
+  #           data:
+  #             entity_id: $spare_button_light_entity
+  #   internal: true

@@ -1,11 +1,12 @@
 substitutions:
   name: "lelit-victoria"
-  label: "Lelit Victoria"
+  friendly_name: "Lelit Victoria"
 
 <<: !include includes/sonoff-basic.yaml
 
-dallas:
-  - pin: GPIO14   # GPIO2 on new layouts
+one_wire:
+  - platform: gpio
+    pin: GPIO14   # GPIO2 on new layouts
 
 binary_sensor:
   - platform: gpio
@@ -21,7 +22,7 @@ binary_sensor:
 
   - platform: template
     device_class: heat
-    name: "$label Ready"
+    name: "Ready"
     id: ready
 
     on_press:
@@ -49,10 +50,10 @@ binary_sensor:
         - switch.turn_off: relay
 
 sensor:
-  - platform: dallas
+  - platform: dallas_temp
     address: 0xAD0315A87740FF28
     id: temperature
-    name: "$label Temperature"
+    name: "Temperature"
 
     on_value:
       then:
@@ -62,7 +63,7 @@ sensor:
 
 switch:
   - platform: gpio
-    name: "$label"
+    name: "Switch"
     icon: "mdi:coffee"
     pin: GPIO12
     id: relay
