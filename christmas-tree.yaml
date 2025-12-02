@@ -1,5 +1,6 @@
 substitutions:
   name: "christmas-tree"
+  friendly_name: "Christmas Tree"
   light_name: "Christmas Tree"
 
 <<: !include includes/light-switch.yaml

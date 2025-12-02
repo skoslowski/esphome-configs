@@ -1,0 +1,6 @@
+substitutions:
+  name: "outside-light"
+  friendly_name: "Outside Light"
+  light_name: "Balcony"
+
+<<: !include includes/light-switch.yaml

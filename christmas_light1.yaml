@@ -1,5 +1,0 @@
-substitutions:
-  name: "christmas_light1"
-  light_name: "christmas1"
-
-<<: !include includes/light_switch.yaml
